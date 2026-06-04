@@ -195,6 +195,46 @@
   .summary-box{padding:14px;font-size:13.5px;line-height:1.6;white-space:pre-wrap;background:var(--surface2);border-radius:12px;border:1px solid var(--line);margin-top:12px}
   .summary-box.empty{color:var(--faint);font-style:italic}
 
+  /* ARCHIVE / RÜCKBLICK */
+  .arch-month{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin:16px 4px 8px}
+  .arch-item{margin-bottom:8px}
+  .arch-item>summary{padding:13px 14px;font-weight:500}
+  .arch-date{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
+  .arch-meta{margin-left:auto;margin-right:12px;font-size:12px;color:var(--muted);white-space:nowrap}
+  .arch-sum{white-space:pre-wrap;font-size:13.5px;line-height:1.6}
+  .arch-refl{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.55}
+  .arch-empty{padding:18px;color:var(--faint);font-size:13.5px;text-align:center}
+
+  /* STATS GRAPH */
+  .stats-bars{display:flex;align-items:flex-end;gap:3px;height:64px}
+  .stats-bars .bar{flex:1;border-radius:3px 3px 0 0;min-height:3px;transition:height .3s,background .3s;cursor:default}
+  .arch-search{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:11px 14px;font-size:14px;font-family:inherit;margin-bottom:12px}
+  .arch-search:focus{outline:none;border-color:var(--gold)}
+
+  /* REWARDS */
+  .reward{display:flex;align-items:center;gap:13px;padding:13px 6px;border-top:1px solid var(--line)}
+  .reward:first-of-type{border-top:none}
+  .rw-ico{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:19px;background:var(--surface2);border:1px solid var(--line)}
+  .reward.unlocked .rw-ico{background:linear-gradient(135deg,rgba(200,162,74,.22),rgba(200,162,74,.06));border-color:rgba(200,162,74,.4)}
+  .reward.claimed{opacity:.55}
+  .rw-body{flex:1;min-width:0}
+  .rw-title{font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .rw-desc{font-size:12px;color:var(--muted);margin-top:2px}
+  .rw-prog{height:5px;border-radius:99px;background:rgba(0,0,0,.06);overflow:hidden;margin-top:7px;max-width:220px}
+  .rw-prog-fill{height:100%;border-radius:99px;background:var(--gold);transition:width .4s}
+  .rw-xp{font-size:10.5px;color:var(--gold);background:rgba(200,162,74,.12);border:1px solid rgba(200,162,74,.25);padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap}
+  .rw-claim{background:linear-gradient(135deg,var(--gold),#e6c87f);color:#0a0b0f;border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .rw-claim:hover{filter:brightness(1.06)}
+  .rw-done{font-size:11.5px;color:var(--ok);white-space:nowrap;font-weight:600}
+  .rw-del{background:none;border:none;color:var(--faint);font-size:14px;cursor:pointer;padding:4px 6px;border-radius:8px}
+  .rw-del:hover{color:var(--bad);background:rgba(224,85,107,.1)}
+
+  /* WEEKLY OVERVIEW */
+  .wk-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .wk-row .wk-val{font-weight:700;font-size:15px}
+  .wk-goal{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;padding:6px 0}
+  .wk-verdict{margin-top:14px;padding:13px;border-radius:12px;background:var(--surface2);font-size:13.5px;line-height:1.5}
+
   /* ---------- BUTTONS ---------- */
   .btn{
     border:1px solid var(--line2);background:var(--surface2);color:var(--txt);border-radius:11px;padding:10px 16px;
@@ -297,6 +337,7 @@
       <div class="xp-bar-wrap">
         <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
         <div class="xp-meta"><span id="xpInto">0 XP</span><span id="xpNeed">/ 100 XP bis Level 2</span></div>
+        <div id="nextRewardLine" style="font-size:11.5px;color:var(--gold);margin-top:7px;font-weight:600"></div>
       </div>
     </div>
 
@@ -360,6 +401,15 @@
     <div class="badges" id="badgeRow"></div>
   </section>
 
+  <!-- REWARDS -->
+  <section>
+    <div class="sec-head"><h2>🎁 Belohnungen</h2><div class="right">Verdiente Auszeiten</div></div>
+    <div class="glass" style="padding:14px 14px 8px">
+      <div id="rewardList"></div>
+      <button class="add-habit" id="btnAddReward" style="margin:6px 0 8px">+ Eigene Belohnung hinzufügen</button>
+    </div>
+  </section>
+
   <!-- EVENING SUMMARY + REFLECTION -->
   <section>
     <div class="sec-head"><h2>🌙 Tagesabschluss & Reflexion</h2></div>
@@ -373,6 +423,19 @@
       <div class="summary-box empty" id="summaryBox">Noch keine Zusammenfassung für heute. Hak deine Habits ab und klick auf „Tageszusammenfassung erstellen“.</div>
       <div style="font-size:11px;color:var(--faint);margin-top:10px" id="summaryHint">Aktuell lokal generiert. Hinterlege in ⚙️ deinen Anthropic-API-Key, damit Claude die Zusammenfassung & Verbesserungsvorschläge schreibt.</div>
     </div>
+  </section>
+
+  <!-- RÜCKBLICK / ARCHIV -->
+  <section>
+    <div class="sec-head"><h2>📖 Rückblick</h2><div class="right" id="archiveCount"></div></div>
+    <div class="glass" style="padding:14px;margin-bottom:12px">
+      <div style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">📊 Verlauf · letzte 21 Tage</div>
+      <div id="statsBars" class="stats-bars"></div>
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint);margin-top:6px"><span>vor 3 Wochen</span><span>heute</span></div>
+      <button class="btn ghost" id="btnWeekly" style="width:100%;margin-top:12px;font-size:13px">📅 Wochenübersicht ansehen</button>
+    </div>
+    <input id="archiveSearch" class="arch-search" placeholder="🔍 Rückblick durchsuchen…"/>
+    <div id="archiveContainer"></div>
   </section>
 
   <!-- NUTRITION PLAN -->
@@ -468,6 +531,29 @@
   </div>
 </div>
 
+<!-- WEEKLY OVERVIEW MODAL -->
+<div class="modal-bg" id="modalWeekly">
+  <div class="modal" style="max-width:440px">
+    <h3 id="weeklyTitle">📅 Wochenübersicht</h3>
+    <div id="weeklyBody"></div>
+    <button class="btn primary" id="weeklyClose" style="width:100%;justify-content:center;margin-top:16px">Schließen</button>
+  </div>
+</div>
+
+<!-- ADD REWARD MODAL -->
+<div class="modal-bg" id="modalReward">
+  <div class="modal">
+    <h3>🎁 Belohnung hinzufügen</h3>
+    <div class="field"><label>Titel</label><input id="rwName" placeholder="z.B. Neue Sneaker"/></div>
+    <div class="field"><label>Beschreibung (optional)</label><input id="rwDesc" placeholder="Wofür gönnst du dir das?"/></div>
+    <div class="field"><label>Ab wie viel Gesamt-XP freigeschaltet?</label><input id="rwXP" type="number" value="1000"/></div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn ghost" id="rwCancel">Abbrechen</button>
+      <button class="btn primary" id="rwSave">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
 <!-- AUTH OVERLAY -->
 <div class="modal-bg" id="authOverlay" style="align-items:center;padding:20px">
   <div class="modal" style="max-width:380px;border-radius:20px">
@@ -499,7 +585,7 @@ const CLAUDE_MODEL = "claude-sonnet-4-6";
 const SUPABASE_URL = "https://ayasotwolzydoptirgcd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YXNvdHdvbHp5ZG9wdGlyZ2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MDE0OTYsImV4cCI6MjA5NjE3NzQ5Nn0.wzLN05n62Rz3HNeGSWF6Tb-eJWil__T-Pc4dzq7YrKA"; // anon public key (durch RLS geschützt)
 const WANT_CLOUD = /^ey/.test(SUPABASE_ANON_KEY);
-let sb = null, sbUser = null, cloudReady = false, saveTimer = null;
+let sb = null, sbUser = null, cloudReady = false, saveTimer = null, appActive = false;
 if (window.supabase && WANT_CLOUD) {
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
@@ -536,7 +622,7 @@ function defaultHabits(){
     {id:"tre_wake",  cat:"treibstoff",name:"06:00 aufgestanden", type:"check", xp:25, freq:"daily", quest:true},
     {id:"tre_kcal",  cat:"treibstoff",name:"Kalorienziel getroffen", type:"number", target:3200, unit:"kcal", xp:20, freq:"daily"},
     {id:"tre_prot",  cat:"treibstoff",name:"Proteinziel getroffen", type:"number", target:185, unit:"g", xp:20, freq:"daily"},
-    {id:"tre_sleep", cat:"treibstoff",name:"7+ Std geschlafen", type:"check", xp:15, freq:"daily"},
+    {id:"tre_sleep", cat:"treibstoff",name:"Schlaf", type:"number", target:7, unit:"Std", xp:15, freq:"daily"},
     {id:"tre_water", cat:"treibstoff",name:"3 L Wasser", type:"check", xp:10, freq:"daily"},
     // GEIST
     {id:"gei_med",   cat:"geist",    name:"Meditation 10 Min", type:"check", xp:15, freq:"daily"},
@@ -547,6 +633,18 @@ function defaultHabits(){
     {id:"rud_out",   cat:"rudel",    name:"Aus dem Haus / unter Menschen", type:"check", xp:10, freq:"daily"},
     {id:"rud_talk",  cat:"rudel",    name:"Fremde Person angesprochen", type:"check", xp:25, freq:"daily"},
     {id:"rud_conn",  cat:"rudel",    name:"Mit Freund / Familie verbunden", type:"check", xp:10, freq:"daily"},
+  ];
+}
+
+function defaultRewards(){
+  return [
+    {id:"rw1", xp:300,  title:"Cheat Meal", desc:"Gönn dir dein Lieblingsessen — ohne schlechtes Gewissen."},
+    {id:"rw2", xp:750,  title:"Freier Abend", desc:"Ein ganzer Abend nur für dich: Serie, Game, Nichtstun. Voll abschalten."},
+    {id:"rw3", xp:1500, title:"Neue Anschaffung", desc:"Kauf dir etwas, das du dir gewünscht hast (setz dir ein Budget)."},
+    {id:"rw4", xp:2500, title:"Recharge-Tag", desc:"Ein kompletter Rest-Day ohne To-Dos. Erholung ist Teil des Plans — du hast ihn dir verdient."},
+    {id:"rw5", xp:4000, title:"Erlebnis gönnen", desc:"Massage, Spa, schönes Essen auswärts oder Aktivität mit Freunden."},
+    {id:"rw6", xp:6000, title:"Kurztrip", desc:"Plane ein Wochenende weg — kompletter Reset für Kopf und Körper."},
+    {id:"rw7", xp:9000, title:"Große Belohnung", desc:"Setz dir selbst ein großes Geschenk für diesen Meilenstein."},
   ];
 }
 
@@ -572,6 +670,10 @@ const BACHELOR_DEADLINE = "2026-06-20";
 /* ---------- STATE ---------- */
 let state = load();
 let viewDate = todayKey();
+// Bereits erreichte Belohnungen beim Start still als bekannt markieren (kein Toast-Schwall)
+(function(){ const t=totalXP(); for(const r of state.rewards){ if(t>=r.xp) state.rewardNotified[r.id]=true; } })();
+// Migration: Schlaf-Habit von Häkchen auf Stunden-Feld umstellen
+(function(){ const sl=state.habits.find(h=>h.id==="tre_sleep"); if(sl && sl.type==="check"){ sl.type="number"; sl.target=7; sl.unit="Std"; sl.name="Schlaf"; } if(!state.weeklyShown) state.weeklyShown={}; })();
 
 function freshState(){
   return {
@@ -584,6 +686,10 @@ function freshState(){
     gym: {anchorDate: todayKey(), anchorIndex:0},
     settings:{apiKey:"", kcal:3200, protein:185},
     earnedBadges:{},
+    rewards: defaultRewards(),
+    claimedRewards:{},
+    rewardNotified:{},
+    weeklyShown:{},
   };
 }
 function load(){
@@ -711,9 +817,12 @@ function render(){
   renderBoss();
   renderAttributes();
   renderBadges();
+  renderRewards();
   renderReflection();
+  renderArchive();
   renderDateNav();
   save();
+  maybeShowWeekly();
 }
 
 function renderHero(){
@@ -736,6 +845,9 @@ function renderHero(){
 
   const mom = momentumStreak();
   $("#momentumDays").innerHTML = '<span class="flame'+(mom>0?'':' cold')+'">🔥</span> '+mom;
+
+  const nextR = [...state.rewards].filter(r=>tot < r.xp).sort((a,b)=>a.xp-b.xp)[0];
+  $("#nextRewardLine").textContent = nextR ? ("🎁 Nächste Belohnung: "+nextR.title+" · noch "+(nextR.xp-tot)+" XP") : "🎁 Alle Belohnungen freigeschaltet!";
 }
 
 function renderAnchors(){
@@ -833,12 +945,14 @@ function renderAttributes(){
     d[h.id] = d[h.id]?0:1;
     if(d[h.id]) pulse(el);
     checkBadges();
+    checkRewardUnlocks();
     render();
   });
   $$('[data-num]').forEach(el=>el.oninput=()=>{
     const h = state.habits.find(x=>x.id===el.dataset.num);
     dayData(viewDate)[h.id] = parseFloat(el.value)||0;
     checkBadges();
+    checkRewardUnlocks();
     // light re-render of hero only to avoid losing focus
     renderHero();
     save();
@@ -871,6 +985,110 @@ function checkBadges(){
   }
 }
 
+function renderRewards(){
+  const cont=$("#rewardList");
+  const tot=totalXP();
+  const list=[...state.rewards].sort((a,b)=>a.xp-b.xp);
+  const wXP=weekXP(todayKey()), restEarned=wXP>=WEEK_REST_XP, restPct=Math.min(100,Math.round(wXP/WEEK_REST_XP*100));
+  const weeklyCard='<div class="reward '+(restEarned?'unlocked':'')+'">'
+    +'<div class="rw-ico">🛌</div>'
+    +'<div class="rw-body"><div class="rw-title">Rest-Day · wöchentlich'+(restEarned?' <span class="rw-xp">verdient</span>':'')+'</div>'
+    +'<div class="rw-desc">'+(restEarned?'2500 XP diese Woche geknackt — gönn dir einen schuldfreien Erholungstag.':'Schaffe 2500 XP in dieser Woche für einen verdienten Rest-Day.')+'</div>'
+    +(restEarned?'':'<div class="rw-prog"><div class="rw-prog-fill" style="width:'+restPct+'%"></div></div>')+'</div>'
+    +'<span class="rw-xp">'+wXP+' / '+WEEK_REST_XP+'</span></div>';
+  cont.innerHTML = weeklyCard + list.map(r=>{
+    const reached = tot>=r.xp;
+    const claimed = !!state.claimedRewards[r.id];
+    const cls = claimed?"claimed":(reached?"unlocked":"");
+    let right;
+    if(claimed) right='<span class="rw-done">✓ eingelöst</span>';
+    else if(reached) right='<button class="rw-claim" data-claim="'+r.id+'">Einlösen</button>';
+    else right='<span class="rw-xp">'+r.xp+' XP</span>';
+    let prog="";
+    if(!reached){
+      const pct=Math.min(100,Math.round(tot/r.xp*100));
+      prog='<div class="rw-prog"><div class="rw-prog-fill" style="width:'+pct+'%"></div></div>';
+    }
+    return '<div class="reward '+cls+'">'
+      +'<div class="rw-ico">'+(claimed?'✅':(reached?'🎁':'🔒'))+'</div>'
+      +'<div class="rw-body"><div class="rw-title">'+escapeHtml(r.title)+(reached&&!claimed?' <span class="rw-xp">verfügbar</span>':'')+'</div>'
+      +(r.desc?'<div class="rw-desc">'+escapeHtml(r.desc)+'</div>':'')
+      +prog+'</div>'
+      +right
+      +'<button class="rw-del" data-rwdel="'+r.id+'" title="Löschen">✕</button>'
+      +'</div>';
+  }).join("");
+  $$('[data-claim]').forEach(el=>el.onclick=()=>{
+    state.claimedRewards[el.dataset.claim]=Date.now();
+    const r=state.rewards.find(x=>x.id===el.dataset.claim);
+    toast("🎉 Belohnung eingelöst: "+(r?r.title:""));
+    render();
+  });
+  $$('[data-rwdel]').forEach(el=>el.onclick=()=>{
+    if(confirm("Diese Belohnung löschen?")){
+      state.rewards=state.rewards.filter(x=>x.id!==el.dataset.rwdel);
+      render();
+    }
+  });
+}
+function checkRewardUnlocks(){
+  const tot=totalXP();
+  for(const r of state.rewards){
+    if(tot>=r.xp && !state.rewardNotified[r.id]){
+      state.rewardNotified[r.id]=true;
+      if(!state.claimedRewards[r.id]) toast("🎁 Belohnung freigeschaltet: "+r.title+"!");
+    }
+  }
+}
+
+/* ---------- WOCHENÜBERSICHT ---------- */
+const WEEK_REST_XP = 2500;
+function weekStartKey(k){ const d=keyToDate(k); const off=(d.getDay()+6)%7; /* Mo=0 */ d.setDate(d.getDate()-off); return todayKey(d); }
+function weekKeys(k){ const s=keyToDate(weekStartKey(k)); const a=[]; for(let i=0;i<7;i++) a.push(todayKey(new Date(s.getTime()+i*86400000))); return a; }
+function weekXP(k){ return weekKeys(k).reduce((s,d)=>s+dayEarned(d),0); }
+function hasHabit(id){ return !!state.habits.find(h=>h.id===id); }
+function countDone(days,id){ const h=state.habits.find(x=>x.id===id); if(!h) return 0; return days.filter(d=>habitDone(d,h)).length; }
+function weeklyStats(k){
+  const days=weekKeys(k);
+  const sleepVals=days.map(d=>dayData(d)["tre_sleep"]||0).filter(v=>v>0);
+  const sleepAvg=sleepVals.length ? sleepVals.reduce((a,b)=>a+b,0)/sleepVals.length : 0;
+  return { days, sleepAvg, sleepCount:sleepVals.length,
+    kcalHit:countDone(days,"tre_kcal"), trained:countDone(days,"kor_train"), med:countDone(days,"gei_med"),
+    xp:weekXP(k) };
+}
+function openWeekly(){
+  const k=todayKey(), s=weeklyStats(k);
+  const mon=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+  const d0=keyToDate(weekStartKey(k)), d6=new Date(d0.getTime()+6*86400000);
+  $("#weeklyTitle").textContent="📅 Wochenübersicht · "+d0.getDate()+". "+mon[d0.getMonth()]+" – "+d6.getDate()+". "+mon[d6.getMonth()];
+  let h="";
+  h+='<div class="wk-row"><span>😴 Ø Schlaf</span><span class="wk-val">'+(s.sleepCount? s.sleepAvg.toFixed(1)+" Std" : "—")+'</span></div>';
+  if(hasHabit("tre_kcal")) h+='<div class="wk-row"><span>🍽️ Kalorienziel getroffen</span><span class="wk-val">'+s.kcalHit+' / 7</span></div>';
+  if(hasHabit("kor_train")) h+='<div class="wk-row"><span>💪 Training</span><span class="wk-val">'+s.trained+'×</span></div>';
+  if(hasHabit("gei_med")) h+='<div class="wk-row"><span>🧘 Meditation</span><span class="wk-val">'+s.med+' / 7</span></div>';
+  h+='<div class="wk-row" style="border-bottom:none;padding-bottom:2px"><span>👑 Wichtigste Wochenziele</span><span></span></div>';
+  for(let i=0;i<2;i++){
+    const g=state.boss[i], done=state.bossDone[i];
+    h+='<div class="wk-goal">'+(done?'✅':'⬜')+' <span style="'+(done?'':'color:var(--muted)')+'">'+((g&&g.trim())? escapeHtml(g) : '<i>Kein Ziel #'+(i+1)+' gesetzt</i>')+'</span></div>';
+  }
+  h+='<div class="wk-row" style="margin-top:6px"><span>⚡ XP diese Woche</span><span class="wk-val">'+s.xp+'</span></div>';
+  const rest=s.xp>=WEEK_REST_XP;
+  h+='<div class="wk-verdict">'+(rest
+    ? '🛌 <b>Rest-Day verdient!</b> Du hast über '+WEEK_REST_XP+' XP geschafft — nimm dir bewusst einen schuldfreien Erholungstag.'
+    : '🛌 Rest-Day: noch <b>'+(WEEK_REST_XP-s.xp)+' XP</b> bis zum verdienten Erholungstag.')+'</div>';
+  $("#weeklyBody").innerHTML=h;
+  $("#modalWeekly").classList.add("open");
+}
+function maybeShowWeekly(){
+  if(!appActive) return;
+  if($("#authOverlay").classList.contains("open")) return;
+  const now=new Date();
+  if(now.getDay()===0 && now.getHours()>=20){
+    const wk=weekStartKey(todayKey());
+    if(!state.weeklyShown[wk]){ state.weeklyShown[wk]=true; openWeekly(); save(); }
+  }
+}
+
 function renderReflection(){
   $("#reflectInput").value = state.reflections[viewDate]||"";
   const sum = state.summaries[viewDate];
@@ -881,6 +1099,65 @@ function renderReflection(){
   if (sb && sbUser){ hint.textContent="✨ Claude erstellt deine Zusammenfassung über deine sichere Supabase Edge Function."; }
   else { hint.textContent="Aktuell lokal generiert (kein Cloud-Login). Melde dich an, damit Claude die Zusammenfassung schreibt."; }
   hint.style.display="block";
+}
+
+function escapeHtml(s){ return (s||"").replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function renderStatsBars(){
+  const el=$("#statsBars"); if(!el) return;
+  let html="";
+  for(let i=20;i>=0;i--){
+    const k=todayKey(new Date(Date.now()-i*86400000));
+    const r=dayRatio(k);
+    const col = r>=0.9?"var(--gold)": r>=0.6?"var(--ok)": r>0?"var(--c-treibstoff)":"rgba(0,0,0,.08)";
+    const h=Math.max(3, Math.round(r*100));
+    html+='<div class="bar" style="height:'+h+'%;background:'+col+'" title="'+fmtDate(k)+': '+Math.round(r*100)+'% · +'+dayEarned(k)+' XP"></div>';
+  }
+  el.innerHTML=html;
+}
+function renderArchive(){
+  renderStatsBars();
+  const cont=$("#archiveContainer");
+  const sums=state.summaries||{}, refs=state.reflections||{};
+  let keys=[...new Set([...Object.keys(sums),...Object.keys(refs)])]
+    .filter(k => (sums[k]&&sums[k].trim()) || (refs[k]&&refs[k].trim()))
+    .sort((a,b)=> b.localeCompare(a));
+  const total=keys.length;
+  const q=($("#archiveSearch")?$("#archiveSearch").value:"").toLowerCase().trim();
+  if(q) keys=keys.filter(k => ((sums[k]||"")+" "+(refs[k]||"")+" "+fmtDate(k)).toLowerCase().includes(q));
+  $("#archiveCount").textContent = total ? (q ? (keys.length+" / "+total) : (total+(total===1?" Eintrag":" Einträge"))) : "";
+  if(!total){
+    cont.innerHTML='<div class="glass arch-empty">Noch keine Auswertungen gespeichert. Erstelle abends deine Tageszusammenfassung — sie landet automatisch hier und bleibt dauerhaft abrufbar.</div>';
+    return;
+  }
+  if(!keys.length){
+    cont.innerHTML='<div class="glass arch-empty">Keine Treffer für „'+escapeHtml(q)+'".</div>';
+    return;
+  }
+  const monNames=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  const groups={}, order=[];
+  for(const k of keys){
+    const d=keyToDate(k), g=monNames[d.getMonth()]+" "+d.getFullYear();
+    if(!groups[g]){ groups[g]=[]; order.push(g); }
+    groups[g].push(k);
+  }
+  let html="";
+  for(const g of order){
+    html+='<div class="arch-month">'+g+'</div>';
+    for(const k of groups[g]){
+      const r=Math.round(dayRatio(k)*100), xp=dayEarned(k);
+      const sum=sums[k]||"", refl=refs[k]||"";
+      html+='<details class="glass arch-item">'
+        +'<summary><span class="arch-date">'+(isPerfect(k)?'💎 ':'')+fmtDate(k)+'</span>'
+        +'<span class="arch-meta">'+r+'% · +'+xp+' XP</span><span class="chev">▾</span></summary>'
+        +'<div class="det-body">'
+        +(sum?'<div class="arch-sum">'+escapeHtml(sum)+'</div>':'<div class="faint" style="font-size:12.5px">Keine KI-Zusammenfassung für diesen Tag.</div>')
+        +(refl?'<div class="arch-refl"><b>📝 Reflexion:</b> '+escapeHtml(refl)+'</div>':'')
+        +'<div style="margin-top:12px"><button class="btn ghost" style="font-size:12px;padding:7px 12px" data-goto="'+k+'">↑ Zu diesem Tag springen</button></div>'
+        +'</div></details>';
+    }
+  }
+  cont.innerHTML=html;
+  $$('[data-goto]').forEach(el=>el.onclick=()=>{ viewDate=el.dataset.goto; render(); window.scrollTo({top:0,behavior:"smooth"}); });
 }
 
 function renderDateNav(){
@@ -1027,6 +1304,17 @@ $("#ahCancel").onclick=()=>$("#modalAdd").classList.remove("open");
 $("#ahSave").onclick=saveNewHabit;
 $$(".modal-bg").forEach(m=>m.onclick=e=>{ if(e.target===m) m.classList.remove("open"); });
 
+$("#btnAddReward").onclick=()=>{ $("#rwName").value=""; $("#rwDesc").value=""; $("#rwXP").value=1000; $("#modalReward").classList.add("open"); setTimeout(()=>$("#rwName").focus(),50); };
+$("#rwCancel").onclick=()=>$("#modalReward").classList.remove("open");
+$("#rwSave").onclick=()=>{
+  const name=$("#rwName").value.trim(); if(!name){ $("#rwName").focus(); return; }
+  state.rewards.push({id:"u"+Date.now().toString(36), title:name, desc:$("#rwDesc").value.trim(), xp:parseInt($("#rwXP").value)||500});
+  $("#modalReward").classList.remove("open"); toast("✓ Belohnung hinzugefügt"); render();
+};
+$("#archiveSearch").oninput=renderArchive;
+$("#btnWeekly").onclick=openWeekly;
+$("#weeklyClose").onclick=()=>$("#modalWeekly").classList.remove("open");
+
 $("#btnReset").onclick=()=>{ if(confirm("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.")){ localStorage.removeItem(STORE_KEY); state=freshState(); viewDate=todayKey(); render(); toast("Zurückgesetzt"); } };
 
 /* ---------- AUTH + BOOT ---------- */
@@ -1056,6 +1344,7 @@ function setAuthMode(m){
   $("#authMsg").textContent="";
 }
 function showApp(){
+  appActive=true;
   $("#authOverlay").classList.remove("open");
   $("#btnLogout").style.display="inline-flex";
   setUserBadge(sbUser && sbUser.email);
@@ -1081,7 +1370,7 @@ async function doSignup(){
   else { $("#authMsg").style.color="var(--ok)"; $("#authMsg").textContent="Konto erstellt — bitte E-Mail bestätigen, dann anmelden."; }
 }
 
-$("#authSkip").onclick=()=>{ $("#authOverlay").classList.remove("open"); setSyncStatus("lokal (kein Sync)"); render(); };
+$("#authSkip").onclick=()=>{ appActive=true; $("#authOverlay").classList.remove("open"); setSyncStatus("lokal (kein Sync)"); render(); };
 if (sb){
   $$("#authSeg .seg-btn").forEach(b=> b.onclick=()=>setAuthMode(b.dataset.mode));
   $("#authPrimary").onclick=()=> (authMode==="signup"?doSignup():doLogin());
@@ -1092,6 +1381,7 @@ if (sb){
 async function boot(){
   render(); // sofort lokalen Stand zeigen
   if (!sb){
+    appActive=true;
     if (WANT_CLOUD && !window.supabase){
       console.error("Supabase-Bibliothek (supabase.js) nicht geladen.");
       $("#authOverlay").classList.add("open");
