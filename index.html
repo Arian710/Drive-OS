@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#f5f5f7" />
 <title>DRIVE OS — Dein Charakter</title>
 <script src="supabase.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root{
     --bg:#f5f5f7;
@@ -235,6 +236,30 @@
   .wk-goal{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;padding:6px 0}
   .wk-verdict{margin-top:14px;padding:13px;border-radius:12px;background:var(--surface2);font-size:13.5px;line-height:1.5}
 
+  /* NAV MENU */
+  .navmenu{position:fixed;top:64px;right:16px;z-index:40;width:230px;max-height:75vh;overflow-y:auto;
+    background:var(--bg2);border:1px solid var(--line2);border-radius:16px;box-shadow:var(--shadow);padding:8px;display:none}
+  .navmenu.open{display:block}
+  .navmenu-lbl{font-size:10.5px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;padding:8px 10px 4px}
+  .navmenu button{width:100%;text-align:left;background:none;border:none;color:var(--txt);font-size:14px;font-family:inherit;
+    padding:10px 10px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px}
+  .navmenu button:hover{background:var(--surface2)}
+  .navmenu .nm-ico{width:22px;text-align:center}
+
+  /* MIC RECORDING */
+  .btn.rec{background:linear-gradient(135deg,var(--bad),#ef6b81);color:#fff;border:none;animation:recpulse 1.3s infinite}
+  @keyframes recpulse{0%,100%{box-shadow:0 0 0 0 rgba(214,58,82,.5)}50%{box-shadow:0 0 0 7px rgba(214,58,82,0)}}
+  .mic-lang{background:var(--surface2);border:1px solid var(--line2);color:var(--txt);border-radius:10px;padding:9px;font-size:13px;font-family:inherit}
+  .mic-lang:focus{outline:none;border-color:var(--gold)}
+
+  /* CALENDAR */
+  .cal-event{display:flex;gap:12px;padding:11px 6px;border-top:1px solid var(--line);align-items:flex-start}
+  .cal-event:first-of-type{border-top:none}
+  .cal-when{flex:none;width:62px;font-size:11.5px;color:var(--gold);font-weight:600;line-height:1.3}
+  .cal-what{flex:1;font-size:14px}
+  .cal-what .cal-time{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .cal-empty{padding:16px;color:var(--faint);font-size:13.5px;text-align:center}
+
   /* ---------- BUTTONS ---------- */
   .btn{
     border:1px solid var(--line2);background:var(--surface2);color:var(--txt);border-radius:11px;padding:10px 16px;
@@ -314,6 +339,7 @@
         <div class="topbtns">
           <span id="syncStatus" style="font-size:11px;color:var(--muted);align-self:center;margin-right:2px"></span>
           <div id="userBadge" class="ubadge" style="display:none"></div>
+          <button class="iconbtn" id="btnMenu" title="Menü">☰</button>
           <button class="iconbtn" id="btnSettings" title="Einstellungen">⚙️</button>
         </div>
       </div>
@@ -395,6 +421,18 @@
     <div id="attrContainer"></div>
   </section>
 
+  <!-- CALENDAR -->
+  <section id="sec-calendar">
+    <div class="sec-head"><h2>📆 Kalender</h2><div class="right" id="calStatus"></div></div>
+    <div class="glass" style="padding:14px">
+      <div id="calBody"></div>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn primary" id="btnCalConnect">🔗 Mit Google Kalender verbinden</button>
+        <button class="btn ghost" id="btnCalRefresh" style="display:none">↻ Aktualisieren</button>
+      </div>
+    </div>
+  </section>
+
   <!-- BADGES -->
   <section>
     <div class="sec-head"><h2>🏆 Errungenschaften</h2><div class="right" id="badgeCount">0 / 0</div></div>
@@ -402,7 +440,7 @@
   </section>
 
   <!-- REWARDS -->
-  <section>
+  <section id="sec-rewards">
     <div class="sec-head"><h2>🎁 Belohnungen</h2><div class="right">Verdiente Auszeiten</div></div>
     <div class="glass" style="padding:14px 14px 8px">
       <div id="rewardList"></div>
@@ -416,9 +454,13 @@
     <div class="glass" style="padding:16px">
       <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Reflexion — Was lief gut? Was hält dich klein? Wofür bist du dankbar?</div>
       <textarea id="reflectInput" placeholder="Schreib frei runter…"></textarea>
-      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn primary" id="btnSummary">✨ Tageszusammenfassung erstellen</button>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center">
+        <button class="btn ghost" id="btnMic">🎤 Sprechen</button>
+        <select id="micLang" class="mic-lang" title="Sprache der Spracheingabe"><option value="de-DE">DE</option><option value="en-US">EN</option></select>
         <button class="btn ghost" id="btnSaveReflect">Reflexion speichern</button>
+      </div>
+      <div style="margin-top:10px">
+        <button class="btn primary" id="btnSummary">✨ Tageszusammenfassung erstellen</button>
       </div>
       <div class="summary-box empty" id="summaryBox">Noch keine Zusammenfassung für heute. Hak deine Habits ab und klick auf „Tageszusammenfassung erstellen“.</div>
       <div style="font-size:11px;color:var(--faint);margin-top:10px" id="summaryHint">Aktuell lokal generiert. Hinterlege in ⚙️ deinen Anthropic-API-Key, damit Claude die Zusammenfassung & Verbesserungsvorschläge schreibt.</div>
@@ -426,7 +468,7 @@
   </section>
 
   <!-- RÜCKBLICK / ARCHIV -->
-  <section>
+  <section id="sec-archive">
     <div class="sec-head"><h2>📖 Rückblick</h2><div class="right" id="archiveCount"></div></div>
     <div class="glass" style="padding:14px;margin-bottom:12px">
       <div style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">📊 Verlauf · letzte 21 Tage</div>
@@ -439,7 +481,7 @@
   </section>
 
   <!-- NUTRITION PLAN -->
-  <section>
+  <section id="sec-nutrition">
     <div class="sec-head"><h2>🍖 Ernährungsplan & Referenz</h2><div class="right">3200 kcal · Lean Bulk</div></div>
     <details class="glass">
       <summary>Makros & Beispieltag anzeigen <span class="chev">▾</span></summary>
@@ -467,6 +509,9 @@
     <button class="btn ghost" id="btnReset" style="color:var(--faint);border-color:var(--line)">Alle Daten zurücksetzen</button>
   </div>
 </div>
+
+<!-- NAV MENU -->
+<div class="navmenu" id="navMenu"></div>
 
 <!-- DATE NAV -->
 <div class="datenav">
@@ -590,6 +635,10 @@ if (window.supabase && WANT_CLOUD) {
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 function setSyncStatus(t){ const el=document.getElementById("syncStatus"); if(el) el.textContent=t; }
+
+/* ---------- GOOGLE CALENDAR CONFIG ---------- */
+const GOOGLE_CLIENT_ID = "695285302028-6cgms24cgtdfabjb72qu1rnnfi4bf7oh.apps.googleusercontent.com"; // Google Cloud → Credentials → OAuth Client-ID (Web)
+let gcalToken = null, gcalTokenClient = null;
 
 /* ---------- DEFAULT DATA ---------- */
 const CATEGORIES = [
@@ -910,6 +959,7 @@ function renderAttributes(){
     const li = levelInfo(catXP(cat.id));
     const card = document.createElement("div");
     card.className = "glass attr";
+    card.id = "cat-"+cat.id;
     card.style.setProperty("--ac", cat.color);
     let html = '<div class="attr-head"><div class="attr-title">'
       +'<div class="attr-ico">'+cat.icon+'</div>'
@@ -1087,6 +1137,110 @@ function maybeShowWeekly(){
     const wk=weekStartKey(todayKey());
     if(!state.weeklyShown[wk]){ state.weeklyShown[wk]=true; openWeekly(); save(); }
   }
+}
+
+/* ---------- NAV MENU ---------- */
+function buildNavMenu(){
+  const items=[
+    {lbl:"Bereiche"},
+    ...CATEGORIES.map(c=>({ico:c.icon, name:c.name, target:"cat-"+c.id})),
+    {lbl:"Mehr"},
+    {ico:"📆", name:"Kalender", target:"sec-calendar"},
+    {ico:"🎁", name:"Belohnungen", target:"sec-rewards"},
+    {ico:"📖", name:"Rückblick", target:"sec-archive"},
+    {ico:"🍖", name:"Ernährungsplan", target:"sec-nutrition"},
+    {ico:"📅", name:"Wochenübersicht", action:"weekly"},
+  ];
+  $("#navMenu").innerHTML = items.map(it=>{
+    if(it.lbl) return '<div class="navmenu-lbl">'+it.lbl+'</div>';
+    return '<button data-target="'+(it.target||"")+'" data-action="'+(it.action||"")+'"><span class="nm-ico">'+it.ico+'</span>'+it.name+'</button>';
+  }).join("");
+  $$('#navMenu button').forEach(b=>b.onclick=()=>{
+    closeNavMenu();
+    if(b.dataset.action==="weekly"){ openWeekly(); return; }
+    const el=document.getElementById(b.dataset.target);
+    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+}
+function toggleNavMenu(){ $("#navMenu").classList.toggle("open"); }
+function closeNavMenu(){ $("#navMenu").classList.remove("open"); }
+
+/* ---------- SPRACHEINGABE ---------- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog=null, micOn=false;
+function toggleMic(){
+  if(!SpeechRec){ toast("Spracheingabe wird in diesem Browser nicht unterstützt (probier Chrome oder Safari)."); return; }
+  if(micOn){ if(recog) recog.stop(); return; }
+  recog=new SpeechRec();
+  recog.lang=$("#micLang").value;
+  recog.interimResults=true;
+  recog.continuous=true;
+  let base=$("#reflectInput").value;
+  if(base && !/\s$/.test(base)) base+=" ";
+  recog.onresult=(e)=>{
+    let fin="", interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal) fin+=t; else interim+=t;
+    }
+    if(fin) base+=fin+" ";
+    $("#reflectInput").value=base+interim;
+    state.reflections[viewDate]=$("#reflectInput").value;
+  };
+  const stopUI=()=>{ micOn=false; const b=$("#btnMic"); b.classList.remove("rec"); b.innerHTML="🎤 Sprechen"; save(); };
+  recog.onend=stopUI;
+  recog.onerror=(e)=>{ stopUI(); if(e.error==="not-allowed"||e.error==="service-not-allowed") toast("Mikrofon-Zugriff nötig — im Browser erlauben."); };
+  try{ recog.start(); micOn=true; const b=$("#btnMic"); b.classList.add("rec"); b.innerHTML="⏹ Stop"; toast("🎤 Sprich jetzt…"); }
+  catch(err){ toast("Mikrofon konnte nicht gestartet werden."); }
+}
+
+/* ---------- GOOGLE CALENDAR ---------- */
+function gcalReady(){ return GOOGLE_CLIENT_ID && !/PASTE_/.test(GOOGLE_CLIENT_ID); }
+function setCalStatus(t){ const el=$("#calStatus"); if(el) el.textContent=t; }
+function initGcalClient(){
+  if(gcalTokenClient || !gcalReady() || !window.google || !google.accounts) return;
+  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: "https://www.googleapis.com/auth/calendar.readonly",
+    callback: (resp)=>{ if(resp && resp.access_token){ gcalToken=resp.access_token; localStorage.setItem("gcalToken",gcalToken); fetchGcalEvents(); } },
+  });
+}
+function connectGcal(){
+  if(!gcalReady()){ toast("Google-Client-ID fehlt — siehe Setup-Anleitung."); renderCalendar(); return; }
+  if(!window.google || !google.accounts){ toast("Google-Bibliothek lädt noch — kurz warten und nochmal klicken."); return; }
+  initGcalClient();
+  gcalTokenClient.requestAccessToken({prompt: gcalToken ? "" : "consent"});
+}
+async function fetchGcalEvents(){
+  if(!gcalToken) return;
+  setCalStatus("… laden");
+  const timeMin=new Date().toISOString();
+  const url="https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=12&singleEvents=true&orderBy=startTime&timeMin="+encodeURIComponent(timeMin);
+  try{
+    const res=await fetch(url,{headers:{Authorization:"Bearer "+gcalToken}});
+    if(res.status===401){ gcalToken=null; localStorage.removeItem("gcalToken"); setCalStatus("neu verbinden"); renderCalendar(); return; }
+    const data=await res.json();
+    renderCalendar(data.items||[]);
+    setCalStatus("✓ verbunden");
+  }catch(e){ setCalStatus("⚠️ Fehler"); }
+}
+function renderCalendar(events){
+  const body=$("#calBody"); if(!body) return;
+  $("#btnCalRefresh").style.display = gcalToken ? "inline-flex" : "none";
+  $("#btnCalConnect").style.display = gcalToken ? "none" : "inline-flex";
+  if(!gcalReady()){ body.innerHTML='<div class="cal-empty">Google-Kalender noch nicht eingerichtet. Trag deine Google-Client-ID im Code ein (Setup-Anleitung) — dann erscheinen hier automatisch deine Termine.</div>'; return; }
+  if(!gcalToken){ body.innerHTML='<div class="cal-empty">Verbinde deinen Google-Kalender, um anstehende Termine hier zu sehen.</div>'; return; }
+  if(!events || !events.length){ body.innerHTML='<div class="cal-empty">Keine anstehenden Termine gefunden.</div>'; return; }
+  const mon=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+  const days=["So","Mo","Di","Mi","Do","Fr","Sa"];
+  body.innerHTML=events.map(ev=>{
+    const startRaw=(ev.start&&(ev.start.dateTime||ev.start.date))||"";
+    const d=new Date(startRaw);
+    const allDay=!(ev.start&&ev.start.dateTime);
+    const when=days[d.getDay()]+" "+d.getDate()+". "+mon[d.getMonth()];
+    const time=allDay?"ganztägig":d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+    return '<div class="cal-event"><div class="cal-when">'+when+'</div><div class="cal-what">'+escapeHtml(ev.summary||"(ohne Titel)")+'<div class="cal-time">'+time+'</div></div></div>';
+  }).join("");
 }
 
 function renderReflection(){
@@ -1314,6 +1468,17 @@ $("#rwSave").onclick=()=>{
 $("#archiveSearch").oninput=renderArchive;
 $("#btnWeekly").onclick=openWeekly;
 $("#weeklyClose").onclick=()=>$("#modalWeekly").classList.remove("open");
+
+$("#btnMenu").onclick=(e)=>{ e.stopPropagation(); toggleNavMenu(); };
+document.addEventListener("click",(e)=>{ const m=$("#navMenu"); if(m && m.classList.contains("open") && !m.contains(e.target) && e.target.id!=="btnMenu"){ closeNavMenu(); } });
+$("#btnMic").onclick=toggleMic;
+$("#btnCalConnect").onclick=connectGcal;
+$("#btnCalRefresh").onclick=fetchGcalEvents;
+
+buildNavMenu();
+gcalToken = localStorage.getItem("gcalToken") || null;
+renderCalendar();
+if(gcalToken) fetchGcalEvents();
 
 $("#btnReset").onclick=()=>{ if(confirm("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.")){ localStorage.removeItem(STORE_KEY); state=freshState(); viewDate=todayKey(); render(); toast("Zurückgesetzt"); } };
 
