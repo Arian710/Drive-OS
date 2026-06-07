@@ -576,12 +576,28 @@
   </div>
 </div>
 
+<!-- WEEK PLANNING MODAL -->
+<div class="modal-bg" id="modalPlan">
+  <div class="modal">
+    <h3>🎯 Deine 3 Hauptziele der Woche</h3>
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.5">Schaffst du alle 3 bis Sonntag, gibt's <b style="color:var(--gold)">+500 XP</b>. Wähl die Dinge, die diese Woche wirklich zählen.</div>
+    <div class="field"><label>Ziel #1</label><input id="plan0" placeholder="z.B. Bachelorarbeit Kapitel 3 fertig"/></div>
+    <div class="field"><label>Ziel #2</label><input id="plan1" placeholder="z.B. 2 neue Makler-Kunden closen"/></div>
+    <div class="field"><label>Ziel #3</label><input id="plan2" placeholder="z.B. 5 Listing-Videos geschnitten"/></div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn ghost" id="planCancel">Später</button>
+      <button class="btn primary" id="planSave">Ziele setzen</button>
+    </div>
+  </div>
+</div>
+
 <!-- WEEKLY OVERVIEW MODAL -->
 <div class="modal-bg" id="modalWeekly">
   <div class="modal" style="max-width:440px">
     <h3 id="weeklyTitle">📅 Wochenübersicht</h3>
     <div id="weeklyBody"></div>
-    <button class="btn primary" id="weeklyClose" style="width:100%;justify-content:center;margin-top:16px">Schließen</button>
+    <button class="btn primary" id="weeklyPlan" style="width:100%;justify-content:center;margin-top:16px">🎯 Nächste Woche planen (+500 XP)</button>
+    <button class="btn ghost" id="weeklyClose" style="width:100%;justify-content:center;margin-top:10px">Schließen</button>
   </div>
 </div>
 
@@ -652,55 +668,57 @@ const CATEGORIES = [
 
 function defaultHabits(){
   return [
-    // IMPERIUM (Fokus, hohe XP)
-    {id:"imp_grow",  cat:"imperium", name:"Main Grow Task des Tages", type:"check", xp:50, freq:"daily", quest:true},
-    {id:"imp_out",   cat:"imperium", name:"Outreach / DMs an Makler", type:"number", target:20, unit:"DMs", xp:40, freq:"daily", quest:true},
-    {id:"imp_brand", cat:"imperium", name:"Personal-Branding Content gepostet", type:"check", xp:35, freq:"daily", quest:true},
-    {id:"imp_call",  cat:"imperium", name:"Sales-Call / Termin geführt", type:"check", xp:45, freq:"daily"},
-    {id:"imp_deliver",cat:"imperium",name:"Kundenarbeit / Listing-Video geliefert", type:"check", xp:25, freq:"daily"},
-    {id:"imp_org",   cat:"imperium", name:"Tag geplant & Prioritäten gesetzt", type:"check", xp:20, freq:"daily"},
-    {id:"imp_mind",  cat:"imperium", name:"Business-Mindset / Skill 15 Min", type:"check", xp:15, freq:"daily"},
-    // INTELLEKT
-    {id:"int_deep",  cat:"intellekt",name:"Deep-Work Session 90 Min (kein Handy)", type:"check", xp:30, freq:"daily", quest:true},
-    {id:"int_write", cat:"intellekt",name:"Geschrieben", type:"number", target:500, unit:"Wörter", xp:25, freq:"daily"},
-    // KÖRPER
-    {id:"kor_train", cat:"koerper",  name:"Training absolviert", type:"check", xp:30, freq:"daily", quest:true},
-    {id:"kor_limit", cat:"koerper",  name:"Zitter-Satz bis ans Limit", type:"check", xp:15, freq:"daily"},
-    {id:"kor_over",  cat:"koerper",  name:"Progressive Overload notiert", type:"check", xp:10, freq:"daily"},
-    // TREIBSTOFF
-    {id:"tre_wake",  cat:"treibstoff",name:"06:00 aufgestanden", type:"check", xp:25, freq:"daily", quest:true},
-    {id:"tre_kcal",  cat:"treibstoff",name:"Kalorienziel getroffen", type:"number", target:3200, unit:"kcal", xp:20, freq:"daily"},
-    {id:"tre_prot",  cat:"treibstoff",name:"Proteinziel getroffen", type:"number", target:185, unit:"g", xp:20, freq:"daily"},
-    {id:"tre_sleep", cat:"treibstoff",name:"Schlaf", type:"number", target:7, unit:"Std", xp:15, freq:"daily"},
-    {id:"tre_water", cat:"treibstoff",name:"3 L Wasser", type:"check", xp:10, freq:"daily"},
-    // GEIST
-    {id:"gei_med",   cat:"geist",    name:"Meditation 10 Min", type:"check", xp:15, freq:"daily"},
-    {id:"gei_read",  cat:"geist",    name:"Lesen 20 Min", type:"check", xp:15, freq:"daily"},
-    {id:"gei_span",  cat:"geist",    name:"Spanisch lernen", type:"check", xp:15, freq:"daily"},
-    {id:"gei_scroll",cat:"geist",    name:"Kein Doomscrolling", type:"check", xp:20, freq:"daily", quest:true},
-    // RUDEL
-    {id:"rud_out",   cat:"rudel",    name:"Aus dem Haus / unter Menschen", type:"check", xp:10, freq:"daily"},
-    {id:"rud_talk",  cat:"rudel",    name:"Fremde Person angesprochen", type:"check", xp:25, freq:"daily"},
-    {id:"rud_conn",  cat:"rudel",    name:"Mit Freund / Familie verbunden", type:"check", xp:10, freq:"daily"},
+    // IMPERIUM — Business (Fokus)
+    {id:"imp_grow",   cat:"imperium", name:"Main Grow Task des Tages", type:"check", xp:150, freq:"daily", quest:true},
+    {id:"imp_video",  cat:"imperium", name:"Video schneiden (120 Min)", type:"check", xp:100, freq:"daily"},
+    {id:"imp_out",    cat:"imperium", name:"Outreach / DMs an Makler", type:"number", target:20, unit:"DMs", xp:100, freq:"daily", quest:true},
+    {id:"imp_call",   cat:"imperium", name:"Sales-Call / Termin geführt", type:"check", xp:100, freq:"daily"},
+    {id:"imp_brand",  cat:"imperium", name:"Personal-Branding Content gepostet", type:"check", xp:80, freq:"daily", quest:true},
+    {id:"imp_deliver",cat:"imperium", name:"Kundenarbeit / Listing geliefert", type:"check", xp:70, freq:"daily"},
+    {id:"imp_org",    cat:"imperium", name:"Tag geplant & Prioritäten gesetzt", type:"check", xp:30, freq:"daily"},
+    {id:"imp_mind",   cat:"imperium", name:"Business-Mindset / Skill 15 Min", type:"check", xp:25, freq:"daily"},
+    // INTELLEKT — Bachelorarbeit
+    {id:"int_deep",   cat:"intellekt",name:"Bachelorarbeit schreiben (90 Min Deep Work)", type:"check", xp:150, freq:"daily", quest:true},
+    {id:"int_write",  cat:"intellekt",name:"Wörter geschrieben", type:"number", target:500, unit:"Wörter", xp:60, freq:"daily"},
+    // KÖRPER — Gym
+    {id:"kor_train",  cat:"koerper",  name:"Training durchgezogen", type:"check", xp:50, freq:"daily", quest:true},
+    {id:"kor_limit",  cat:"koerper",  name:"Zitter-Satz bis ans Limit", type:"check", xp:30, freq:"daily"},
+    {id:"kor_over",   cat:"koerper",  name:"Progressive Overload notiert", type:"check", xp:20, freq:"daily"},
+    // TREIBSTOFF — Ernährung & Recovery
+    {id:"tre_wake",   cat:"treibstoff",name:"06:00 aufgestanden", type:"check", xp:40, freq:"daily", quest:true},
+    {id:"tre_kcal",   cat:"treibstoff",name:"Kalorienziel getroffen", type:"number", target:3200, unit:"kcal", xp:30, freq:"daily"},
+    {id:"tre_prot",   cat:"treibstoff",name:"Proteinziel getroffen", type:"number", target:185, unit:"g", xp:30, freq:"daily"},
+    {id:"tre_sleep",  cat:"treibstoff",name:"Schlaf", type:"number", target:7, unit:"Std", xp:30, freq:"daily"},
+    {id:"tre_water",  cat:"treibstoff",name:"3 L Wasser", type:"check", xp:15, freq:"daily"},
+    // GEIST — Achtsamkeit & Wachstum
+    {id:"gei_med",    cat:"geist",    name:"Meditation 10 Min", type:"check", xp:25, freq:"daily"},
+    {id:"gei_read",   cat:"geist",    name:"Lesen 20 Min", type:"check", xp:25, freq:"daily"},
+    {id:"gei_span",   cat:"geist",    name:"Spanisch lernen", type:"check", xp:30, freq:"daily"},
+    {id:"gei_scroll", cat:"geist",    name:"Kein Doomscrolling", type:"check", xp:40, freq:"daily", quest:true},
+    // RUDEL — Socializing
+    {id:"rud_cold",   cat:"rudel",    name:"Cold Approach (Frau angesprochen)", type:"check", xp:150, freq:"daily", quest:true},
+    {id:"rud_talk",   cat:"rudel",    name:"Mit 3 Fremden interagiert", type:"check", xp:100, freq:"daily"},
+    {id:"rud_out",    cat:"rudel",    name:"Aus dem Haus / unter Menschen", type:"check", xp:25, freq:"daily"},
+    {id:"rud_conn",   cat:"rudel",    name:"Mit Freund / Familie verbunden", type:"check", xp:30, freq:"daily"},
   ];
 }
 
 function defaultRewards(){
   return [
-    {id:"rw1", xp:300,  title:"Cheat Meal", desc:"Gönn dir dein Lieblingsessen — ohne schlechtes Gewissen."},
-    {id:"rw2", xp:750,  title:"Freier Abend", desc:"Ein ganzer Abend nur für dich: Serie, Game, Nichtstun. Voll abschalten."},
-    {id:"rw3", xp:1500, title:"Neue Anschaffung", desc:"Kauf dir etwas, das du dir gewünscht hast (setz dir ein Budget)."},
-    {id:"rw4", xp:2500, title:"Recharge-Tag", desc:"Ein kompletter Rest-Day ohne To-Dos. Erholung ist Teil des Plans — du hast ihn dir verdient."},
-    {id:"rw5", xp:4000, title:"Erlebnis gönnen", desc:"Massage, Spa, schönes Essen auswärts oder Aktivität mit Freunden."},
-    {id:"rw6", xp:6000, title:"Kurztrip", desc:"Plane ein Wochenende weg — kompletter Reset für Kopf und Körper."},
-    {id:"rw7", xp:9000, title:"Große Belohnung", desc:"Setz dir selbst ein großes Geschenk für diesen Meilenstein."},
+    {id:"rw1", xp:1500,   title:"Cheat Meal", desc:"Gönn dir dein Lieblingsessen — ohne schlechtes Gewissen."},
+    {id:"rw2", xp:4000,   title:"Freier Abend", desc:"Ein ganzer Abend nur für dich: Serie, Game, Nichtstun. Voll abschalten."},
+    {id:"rw3", xp:10000,  title:"Neue Anschaffung", desc:"Kauf dir etwas, das du dir gewünscht hast (setz dir ein Budget)."},
+    {id:"rw4", xp:20000,  title:"Recharge-Tag", desc:"Ein kompletter Rest-Day ohne To-Dos. Erholung ist Teil des Plans — du hast ihn dir verdient."},
+    {id:"rw5", xp:40000,  title:"Erlebnis gönnen", desc:"Massage, Spa, schönes Essen auswärts oder Aktivität mit Freunden."},
+    {id:"rw6", xp:75000,  title:"Kurztrip", desc:"Plane ein Wochenende weg — kompletter Reset für Kopf und Körper."},
+    {id:"rw7", xp:150000, title:"Große Belohnung", desc:"Setz dir selbst ein großes Geschenk für diesen Meilenstein."},
   ];
 }
 
 const GYM_CYCLE = ["Brust / Schulter","Rücken / Bauch","Arme","Beine","Pause"];
 
 const BADGES = [
-  {id:"first",   icon:"🌱", name:"Erster Schritt", desc:"Erster Tag ≥ 60%", test:s=>anyDayRatio(s,0.6)},
+  {id:"first",   icon:"🌱", name:"Erster Schritt", desc:"Erster Tag mit 150+ XP", test:s=>Object.keys(s.days).some(k=>dayEarned(k)>=150)},
   {id:"perfect", icon:"💎", name:"Perfekt", desc:"1 Perfect Day", test:s=>countPerfect(s)>=1},
   {id:"week",    icon:"🗓️", name:"Perfect Week", desc:"7 Perfect Days", test:s=>countPerfect(s)>=7},
   {id:"flame7",  icon:"🔥", name:"Heißlauf", desc:"7 Tage Momentum", test:s=>maxMomentum(s)>=7},
@@ -723,6 +741,19 @@ let viewDate = todayKey();
 (function(){ const t=totalXP(); for(const r of state.rewards){ if(t>=r.xp) state.rewardNotified[r.id]=true; } })();
 // Migration: Schlaf-Habit von Häkchen auf Stunden-Feld umstellen
 (function(){ const sl=state.habits.find(h=>h.id==="tre_sleep"); if(sl && sl.type==="check"){ sl.type="number"; sl.target=7; sl.unit="Std"; sl.name="Schlaf"; } if(!state.weeklyShown) state.weeklyShown={}; })();
+// Migration V2: neues XP-Konzept + neue/umbenannte Habits + höhere Belohnungs-Schwellen
+(function(){
+  if(state.schemaV2) return;
+  state.schemaV2=true;
+  for(const w of defaultHabits()){
+    const ex=state.habits.find(h=>h.id===w.id);
+    if(ex){ ex.xp=w.xp; ex.name=w.name; ex.type=w.type; if(w.target!=null) ex.target=w.target; if(w.unit!=null) ex.unit=w.unit; ex.cat=w.cat; }
+    else { state.habits.push(w); }
+  }
+  for(const d of defaultRewards()){ const r=state.rewards.find(x=>x.id===d.id); if(r) r.xp=d.xp; }
+  if(!state.weekGoals) state.weekGoals={};
+  if(!state.weekPlanPrompted) state.weekPlanPrompted={};
+})();
 
 function freshState(){
   return {
@@ -739,6 +770,8 @@ function freshState(){
     claimedRewards:{},
     rewardNotified:{},
     weeklyShown:{},
+    weekGoals:{},
+    weekPlanPrompted:{},
   };
 }
 function load(){
@@ -816,7 +849,11 @@ function habitEarnedXP(k,h){
 function dayEarned(k){ return state.habits.reduce((s,h)=>s+habitEarnedXP(k,h),0); }
 function dayMax(k){ return state.habits.filter(h=>h.freq==="daily").reduce((s,h)=>s+h.xp,0); }
 function dayRatio(k){ const m=dayMax(k); return m? dayEarned(k)/m : 0; }
-function totalXP(){ return Object.keys(state.days).reduce((s,k)=>s+dayEarned(k),0); }
+const DAY_GOAL_XP = 400; // Tages-XP-Ziel: ab hier springt die Momentum-Flamme an / Tag zählt als "geschafft"
+function dayGoalPct(k){ return Math.min(1, dayEarned(k)/DAY_GOAL_XP); }
+function dayHit(k){ return dayEarned(k) >= DAY_GOAL_XP; }
+function weekBonusCount(){ let n=0; if(state.weekGoals) for(const k in state.weekGoals){ if(state.weekGoals[k].bonusAwarded) n++; } return n; }
+function totalXP(){ return Object.keys(state.days).reduce((s,k)=>s+dayEarned(k),0) + 500*weekBonusCount(); }
 function catXP(cat){
   let s=0;
   for(const k in state.days)
@@ -830,13 +867,13 @@ function levelInfo(xp){
 }
 
 /* ---------- STREAKS / BADGE TESTS ---------- */
-function isPerfect(k){ return dayRatio(k) >= 0.9; }
+function isPerfect(k){ return dayHit(k); }
 function momentumStreak(){
-  // consecutive days (>=0.8) counting back from today (or yesterday if today not started)
+  // aufeinanderfolgende Tage mit >= DAY_GOAL_XP, rückwärts ab heute (oder gestern, falls heute noch offen)
   let streak=0;
   let k = todayKey();
-  if(dayRatio(k) < 0.8){ k = todayKey(new Date(Date.now()-86400000)); }
-  while(dayRatio(k) >= 0.8){
+  if(!dayHit(k)){ k = todayKey(new Date(Date.now()-86400000)); }
+  while(dayHit(k)){
     streak++;
     k = todayKey(new Date(keyToDate(k).getTime()-86400000));
   }
@@ -846,7 +883,7 @@ function maxMomentum(s){
   const keys = Object.keys(s.days).sort();
   let best=0,cur=0,prev=null;
   for(const k of keys){
-    if(dayRatio(k)>=0.8){
+    if(dayHit(k)){
       if(prev && daysBetween(prev,k)===1) cur++; else cur=1;
       best=Math.max(best,cur); prev=k;
     } else { cur=0; prev=null; }
@@ -885,12 +922,13 @@ function renderHero(){
   $("#totalXPStat").textContent = tot;
   $("#todayXP").textContent = dayEarned(viewDate);
 
-  const ratio = dayRatio(viewDate);
+  const earned = dayEarned(viewDate);
+  const pct = dayGoalPct(viewDate);
   const circ = 2*Math.PI*36;
   $("#dayRing").style.strokeDasharray = circ;
-  $("#dayRing").style.strokeDashoffset = circ*(1-ratio);
-  $("#dayPct").textContent = Math.round(ratio*100)+"%";
-  $("#perfectLabel").textContent = ratio>=0.9 ? "💎 PERFECT DAY!" : ratio>=0.8 ? "Stark — fast perfekt" : ratio>=0.4 ? "In Bewegung" : "Auf zum Perfect Day";
+  $("#dayRing").style.strokeDashoffset = circ*(1-pct);
+  $("#dayPct").textContent = Math.round(pct*100)+"%";
+  $("#perfectLabel").textContent = earned>=DAY_GOAL_XP ? "🔥 Tagesziel erreicht ("+DAY_GOAL_XP+" XP)!" : earned>=DAY_GOAL_XP*0.75 ? "Stark — fast am Ziel" : earned>=DAY_GOAL_XP*0.4 ? "In Bewegung" : "Auf zum Tagesziel ("+DAY_GOAL_XP+" XP)";
 
   const mom = momentumStreak();
   $("#momentumDays").innerHTML = '<span class="flame'+(mom>0?'':' cold')+'">🔥</span> '+mom;
@@ -939,16 +977,17 @@ function renderQuests(){
 }
 
 function renderBoss(){
-  // week label
-  const d = keyToDate(viewDate);
+  const d = keyToDate(todayKey());
   const onejan = new Date(d.getFullYear(),0,1);
   const week = Math.ceil(((d-onejan)/86400000 + onejan.getDay()+1)/7);
-  $("#bossWeek").textContent = "KW "+week;
-  $("#bossList").innerHTML = state.boss.map((g,i)=>{
-    return '<div class="boss-goal"><div class="check'+(state.bossDone[i]?' done':'')+'" data-boss="'+i+'" style="--ac:var(--gold);width:22px;height:22px;font-size:13px">'+(state.bossDone[i]?'✓':'')+'</div><input type="text" data-bosstext="'+i+'" placeholder="Wichtigstes Wochenziel #'+(i+1)+'" value="'+(g||"").replace(/"/g,'&quot;')+'"/></div>';
-  }).join("");
-  $$('[data-boss]').forEach(el=>el.onclick=()=>{const i=+el.dataset.boss;state.bossDone[i]=!state.bossDone[i];render();});
-  $$('[data-bosstext]').forEach(el=>el.onchange=()=>{state.boss[+el.dataset.bosstext]=el.value;save();});
+  const g = weekGoalsFor(curWeekKey());
+  $("#bossWeek").innerHTML = "KW "+week + (g.bonusAwarded ? ' · <span style="color:var(--ok)">+500 ✓</span>' : ' · +500 XP wenn alle 3 ✓');
+  $("#bossList").innerHTML = g.tasks.map((t,i)=>{
+    return '<div class="boss-goal"><div class="check'+(g.done[i]?' done':'')+'" data-boss="'+i+'" style="--ac:var(--gold);width:22px;height:22px;font-size:13px">'+(g.done[i]?'✓':'')+'</div><input type="text" data-bosstext="'+i+'" placeholder="Hauptziel #'+(i+1)+'" value="'+(t||"").replace(/"/g,'&quot;')+'"/></div>';
+  }).join("") + '<button class="add-habit" id="btnPlanWeek" style="margin-top:8px">🎯 Woche planen</button>';
+  $$('[data-boss]').forEach(el=>el.onclick=()=>{ const i=+el.dataset.boss; g.done[i]=!g.done[i]; checkWeekGoalBonus(); render(); });
+  $$('[data-bosstext]').forEach(el=>el.onchange=()=>{ g.tasks[+el.dataset.bosstext]=el.value; save(); });
+  $("#btnPlanWeek").onclick=()=>openPlan(curWeekKey());
 }
 
 function renderAttributes(){
@@ -1092,10 +1131,14 @@ function checkRewardUnlocks(){
 }
 
 /* ---------- WOCHENÜBERSICHT ---------- */
-const WEEK_REST_XP = 2500;
+const WEEK_REST_XP = 4000;
 function weekStartKey(k){ const d=keyToDate(k); const off=(d.getDay()+6)%7; /* Mo=0 */ d.setDate(d.getDate()-off); return todayKey(d); }
 function weekKeys(k){ const s=keyToDate(weekStartKey(k)); const a=[]; for(let i=0;i<7;i++) a.push(todayKey(new Date(s.getTime()+i*86400000))); return a; }
-function weekXP(k){ return weekKeys(k).reduce((s,d)=>s+dayEarned(d),0); }
+function weekXP(k){ let s=weekKeys(k).reduce((a,d)=>a+dayEarned(d),0); const g=state.weekGoals&&state.weekGoals[weekStartKey(k)]; if(g&&g.bonusAwarded) s+=500; return s; }
+function curWeekKey(){ return weekStartKey(todayKey()); }
+function nextWeekKey(){ const s=keyToDate(curWeekKey()); return todayKey(new Date(s.getTime()+7*86400000)); }
+function weekGoalsFor(wk){ if(!state.weekGoals) state.weekGoals={}; if(!state.weekGoals[wk]) state.weekGoals[wk]={tasks:["","",""],done:[false,false,false],bonusAwarded:false}; return state.weekGoals[wk]; }
+function checkWeekGoalBonus(){ const g=weekGoalsFor(curWeekKey()); const allSet=g.tasks.every(t=>t&&t.trim()); const allDone=allSet&&g.done.every(Boolean); if(allDone&&!g.bonusAwarded){ g.bonusAwarded=true; toast("🏆 +500 XP — alle 3 Wochenziele geschafft!"); } }
 function hasHabit(id){ return !!state.habits.find(h=>h.id===id); }
 function countDone(days,id){ const h=state.habits.find(x=>x.id===id); if(!h) return 0; return days.filter(d=>habitDone(d,h)).length; }
 function weeklyStats(k){
@@ -1128,6 +1171,14 @@ function openWeekly(){
     : '🛌 Rest-Day: noch <b>'+(WEEK_REST_XP-s.xp)+' XP</b> bis zum verdienten Erholungstag.')+'</div>';
   $("#weeklyBody").innerHTML=h;
   $("#modalWeekly").classList.add("open");
+}
+let planWeekKey=null;
+function openPlan(wk){
+  planWeekKey=wk||curWeekKey();
+  const g=weekGoalsFor(planWeekKey);
+  $("#plan0").value=g.tasks[0]||""; $("#plan1").value=g.tasks[1]||""; $("#plan2").value=g.tasks[2]||"";
+  $("#modalPlan").classList.add("open");
+  setTimeout(()=>$("#plan0").focus(),50);
 }
 function maybeShowWeekly(){
   if(!appActive) return;
@@ -1261,10 +1312,10 @@ function renderStatsBars(){
   let html="";
   for(let i=20;i>=0;i--){
     const k=todayKey(new Date(Date.now()-i*86400000));
-    const r=dayRatio(k);
-    const col = r>=0.9?"var(--gold)": r>=0.6?"var(--ok)": r>0?"var(--c-treibstoff)":"rgba(0,0,0,.08)";
+    const xp=dayEarned(k), r=dayGoalPct(k);
+    const col = xp>=DAY_GOAL_XP?"var(--gold)": r>=0.6?"var(--ok)": xp>0?"var(--c-treibstoff)":"rgba(0,0,0,.08)";
     const h=Math.max(3, Math.round(r*100));
-    html+='<div class="bar" style="height:'+h+'%;background:'+col+'" title="'+fmtDate(k)+': '+Math.round(r*100)+'% · +'+dayEarned(k)+' XP"></div>';
+    html+='<div class="bar" style="height:'+h+'%;background:'+col+'" title="'+fmtDate(k)+': '+xp+' / '+DAY_GOAL_XP+' XP"></div>';
   }
   el.innerHTML=html;
 }
@@ -1298,7 +1349,7 @@ function renderArchive(){
   for(const g of order){
     html+='<div class="arch-month">'+g+'</div>';
     for(const k of groups[g]){
-      const r=Math.round(dayRatio(k)*100), xp=dayEarned(k);
+      const r=Math.round(dayGoalPct(k)*100), xp=dayEarned(k);
       const sum=sums[k]||"", refl=refs[k]||"";
       html+='<details class="glass arch-item">'
         +'<summary><span class="arch-date">'+(isPerfect(k)?'💎 ':'')+fmtDate(k)+'</span>'
@@ -1330,8 +1381,9 @@ function buildContext(){
   });
   return {
     date: fmtDate(viewDate),
-    ratio: Math.round(dayRatio(viewDate)*100),
+    ratio: Math.round(dayGoalPct(viewDate)*100),
     xp: dayEarned(viewDate),
+    dayGoal: DAY_GOAL_XP,
     momentum: momentumStreak(),
     bachelorLeft: daysBetween(todayKey(),BACHELOR_DEADLINE),
     byCat, done:done.map(h=>h.name), missed:missed.map(h=>h.name),
@@ -1467,7 +1519,22 @@ $("#rwSave").onclick=()=>{
 };
 $("#archiveSearch").oninput=renderArchive;
 $("#btnWeekly").onclick=openWeekly;
-$("#weeklyClose").onclick=()=>$("#modalWeekly").classList.remove("open");
+$("#weeklyPlan").onclick=()=>{ $("#modalWeekly").classList.remove("open"); openPlan(nextWeekKey()); };
+$("#weeklyClose").onclick=()=>{
+  $("#modalWeekly").classList.remove("open");
+  const nwk=nextWeekKey();
+  const g=state.weekGoals&&state.weekGoals[nwk];
+  const planned=g&&g.tasks.some(t=>t&&t.trim());
+  const now=new Date();
+  if(now.getDay()===0 && now.getHours()>=20 && !planned && !state.weekPlanPrompted[nwk]){ state.weekPlanPrompted[nwk]=true; save(); openPlan(nwk); }
+};
+$("#planCancel").onclick=()=>$("#modalPlan").classList.remove("open");
+$("#planSave").onclick=()=>{
+  const g=weekGoalsFor(planWeekKey||curWeekKey());
+  g.tasks=[$("#plan0").value.trim(),$("#plan1").value.trim(),$("#plan2").value.trim()];
+  $("#modalPlan").classList.remove("open");
+  toast("🎯 Wochenziele gesetzt"); render();
+};
 
 $("#btnMenu").onclick=(e)=>{ e.stopPropagation(); toggleNavMenu(); };
 document.addEventListener("click",(e)=>{ const m=$("#navMenu"); if(m && m.classList.contains("open") && !m.contains(e.target) && e.target.id!=="btnMenu"){ closeNavMenu(); } });
