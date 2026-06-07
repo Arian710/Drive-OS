@@ -131,7 +131,8 @@
   .habit-name{font-size:14.5px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
   .habit-name.done{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
   .habit-sub{font-size:11.5px;color:var(--faint);margin-top:1px}
-  .xp-tag{font-size:10.5px;color:var(--gold);background:rgba(200,162,74,.12);border:1px solid rgba(200,162,74,.25);padding:1px 7px;border-radius:99px;font-weight:600}
+  .xp-tag{font-size:10.5px;color:var(--gold);background:rgba(200,162,74,.12);border:1px solid rgba(200,162,74,.25);padding:1px 7px;border-radius:99px;font-weight:600;white-space:nowrap}
+  .xp-tag.full{color:#fff;background:var(--ok);border-color:var(--ok)}
   .num-input{
     width:74px;background:var(--surface2);border:1px solid var(--line2);color:var(--txt);border-radius:9px;
     padding:7px 9px;font-size:13px;text-align:right
@@ -525,7 +526,7 @@
 <!-- ADD HABIT MODAL -->
 <div class="modal-bg" id="modalAdd">
   <div class="modal">
-    <h3>➕ Habit hinzufügen</h3>
+    <h3 id="ahTitle">➕ Habit hinzufügen</h3>
     <div class="field"><label>Name</label><input id="ahName" placeholder="z.B. Cold-Outreach Follow-ups"/></div>
     <div class="row">
       <div class="field"><label>Attribut</label><select id="ahCat"></select></div>
@@ -1012,7 +1013,8 @@ function renderAttributes(){
           +'<div class="habit-body"><div class="habit-name'+(done?' done':'')+'">'+h.name+'</div>'
           +(h.freq==="weekly"?'<div class="habit-sub">wöchentlich</div>':'')+'</div>'
           +'<span class="xp-tag">+'+h.xp+'</span>'
-          +'<button class="del-habit" data-del="'+h.id+'">✕</button></div>';
+          +'<button class="del-habit" data-edit="'+h.id+'" title="Bearbeiten">✎</button>'
+          +'<button class="del-habit" data-del="'+h.id+'" title="Löschen">✕</button></div>';
       } else {
         const v = dayData(viewDate)[h.id]||"";
         html += '<div class="habit"><div class="check'+(done?' done':'')+'" data-check="'+h.id+'">'+(done?'✓':'')+'</div>'
@@ -1020,7 +1022,9 @@ function renderAttributes(){
           +'<div class="habit-sub">Ziel: '+h.target+' '+(h.unit||'')+'</div></div>'
           +'<input class="num-input" type="number" inputmode="numeric" data-num="'+h.id+'" value="'+v+'" placeholder="0"/>'
           +'<span class="num-unit">'+(h.unit||'')+'</span>'
-          +'<button class="del-habit" data-del="'+h.id+'">✕</button></div>';
+          +'<span class="xp-tag'+(habitDone(viewDate,h)?' full':'')+'" data-xptag="'+h.id+'" title="aktuell verdiente XP / Maximum">'+habitEarnedXP(viewDate,h)+' / '+h.xp+'</span>'
+          +'<button class="del-habit" data-edit="'+h.id+'" title="Bearbeiten">✎</button>'
+          +'<button class="del-habit" data-del="'+h.id+'" title="Löschen">✕</button></div>';
       }
     }
     html += '<button class="add-habit" data-add="'+cat.id+'">+ Habit in '+cat.name+'</button>';
@@ -1040,6 +1044,8 @@ function renderAttributes(){
   $$('[data-num]').forEach(el=>el.oninput=()=>{
     const h = state.habits.find(x=>x.id===el.dataset.num);
     dayData(viewDate)[h.id] = parseFloat(el.value)||0;
+    const tag = document.querySelector('[data-xptag="'+h.id+'"]');
+    if(tag){ tag.textContent = habitEarnedXP(viewDate,h)+" / "+h.xp; tag.classList.toggle("full", habitDone(viewDate,h)); }
     checkBadges();
     checkRewardUnlocks();
     // light re-render of hero only to avoid losing focus
@@ -1053,6 +1059,7 @@ function renderAttributes(){
       render();
     }
   });
+  $$('[data-edit]').forEach(el=>el.onclick=()=>openEdit(el.dataset.edit));
   $$('[data-add]').forEach(el=>el.onclick=()=>openAdd(el.dataset.add));
 }
 
@@ -1427,11 +1434,34 @@ async function claudeSummary(){
 }
 
 /* ---------- MODALS ---------- */
+let editHabitId=null;
+function fillCatSelect(){ $("#ahCat").innerHTML = CATEGORIES.map(c=>'<option value="'+c.id+'">'+c.icon+' '+c.name+'</option>').join(""); }
 function openAdd(catId){
-  $("#ahCat").innerHTML = CATEGORIES.map(c=>'<option value="'+c.id+'">'+c.icon+' '+c.name+'</option>').join("");
+  editHabitId=null;
+  $("#ahTitle").textContent="➕ Habit hinzufügen";
+  $("#ahSave").textContent="Hinzufügen";
+  fillCatSelect();
   $("#ahCat").value = catId||"imperium";
   $("#ahName").value=""; $("#ahXP").value=15; $("#ahTarget").value=1; $("#ahUnit").value="";
   $("#ahType").value="check"; $("#ahFreq").value="daily";
+  toggleType();
+  $("#modalAdd").classList.add("open");
+  setTimeout(()=>$("#ahName").focus(),50);
+}
+function openEdit(id){
+  const h = state.habits.find(x=>x.id===id);
+  if(!h) return;
+  editHabitId=id;
+  $("#ahTitle").textContent="✎ Habit bearbeiten";
+  $("#ahSave").textContent="Speichern";
+  fillCatSelect();
+  $("#ahCat").value=h.cat;
+  $("#ahName").value=h.name;
+  $("#ahXP").value=h.xp;
+  $("#ahType").value=h.type;
+  $("#ahTarget").value=h.target!=null?h.target:1;
+  $("#ahUnit").value=h.unit||"";
+  $("#ahFreq").value=h.freq||"daily";
   toggleType();
   $("#modalAdd").classList.add("open");
   setTimeout(()=>$("#ahName").focus(),50);
@@ -1441,20 +1471,29 @@ function toggleType(){
   $("#ahTargetWrap").style.display = isNum?"block":"none";
   $("#ahUnitWrap").style.display = isNum?"block":"none";
 }
-function saveNewHabit(){
+function saveHabit(){
   const name = $("#ahName").value.trim();
   if(!name){ $("#ahName").focus(); return; }
-  const h = {
-    id:"u_"+Date.now().toString(36),
+  const type=$("#ahType").value;
+  const data = {
     cat:$("#ahCat").value,
-    name, type:$("#ahType").value,
+    name, type,
     xp:parseInt($("#ahXP").value)||10,
     freq:$("#ahFreq").value
   };
-  if(h.type==="number"){ h.target=parseFloat($("#ahTarget").value)||1; h.unit=$("#ahUnit").value.trim(); }
-  state.habits.push(h);
+  if(type==="number"){ data.target=parseFloat($("#ahTarget").value)||1; data.unit=$("#ahUnit").value.trim(); }
+  if(editHabitId){
+    const h=state.habits.find(x=>x.id===editHabitId);
+    if(h){ h.cat=data.cat; h.name=data.name; h.type=data.type; h.xp=data.xp; h.freq=data.freq;
+      if(type==="number"){ h.target=data.target; h.unit=data.unit; } else { delete h.target; delete h.unit; } }
+    toast("✓ Habit aktualisiert");
+  } else {
+    data.id="u_"+Date.now().toString(36);
+    state.habits.push(data);
+    toast("✓ Habit hinzugefügt");
+  }
+  editHabitId=null;
   $("#modalAdd").classList.remove("open");
-  toast("✓ Habit hinzugefügt");
   render();
 }
 
@@ -1507,7 +1546,7 @@ $("#btnExport").onclick=()=>{
 
 $("#ahType").onchange=toggleType;
 $("#ahCancel").onclick=()=>$("#modalAdd").classList.remove("open");
-$("#ahSave").onclick=saveNewHabit;
+$("#ahSave").onclick=saveHabit;
 $$(".modal-bg").forEach(m=>m.onclick=e=>{ if(e.target===m) m.classList.remove("open"); });
 
 $("#btnAddReward").onclick=()=>{ $("#rwName").value=""; $("#rwDesc").value=""; $("#rwXP").value=1000; $("#modalReward").classList.add("open"); setTimeout(()=>$("#rwName").focus(),50); };
