@@ -655,7 +655,7 @@ function setSyncStatus(t){ const el=document.getElementById("syncStatus"); if(el
 
 /* ---------- GOOGLE CALENDAR CONFIG ---------- */
 const GOOGLE_CLIENT_ID = "695285302028-6cgms24cgtdfabjb72qu1rnnfi4bf7oh.apps.googleusercontent.com"; // Google Cloud → Credentials → OAuth Client-ID (Web)
-let gcalToken = null, gcalTokenClient = null;
+let gcalConnected = false;
 
 /* ---------- DEFAULT DATA ---------- */
 const CATEGORIES = [
@@ -812,6 +812,7 @@ async function cloudLoad(){
     }
     cloudReady = true;
     setSyncStatus("✓ synchron");
+    loadGcalEvents();
   }catch(e){ cloudReady = true; setSyncStatus("⚠️ Sync-Fehler"); }
 }
 
@@ -1255,39 +1256,41 @@ function toggleMic(){
 /* ---------- GOOGLE CALENDAR ---------- */
 function gcalReady(){ return GOOGLE_CLIENT_ID && !/PASTE_/.test(GOOGLE_CLIENT_ID); }
 function setCalStatus(t){ const el=$("#calStatus"); if(el) el.textContent=t; }
-function initGcalClient(){
-  if(gcalTokenClient || !gcalReady() || !window.google || !google.accounts) return;
-  gcalTokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: "https://www.googleapis.com/auth/calendar.readonly",
-    callback: (resp)=>{ if(resp && resp.access_token){ gcalToken=resp.access_token; localStorage.setItem("gcalToken",gcalToken); fetchGcalEvents(); } },
-  });
-}
 function connectGcal(){
+  if(!sb || !sbUser){ toast("Bitte zuerst einloggen (Cloud-Sync), dann Kalender verbinden."); return; }
   if(!gcalReady()){ toast("Google-Client-ID fehlt — siehe Setup-Anleitung."); renderCalendar(); return; }
   if(!window.google || !google.accounts){ toast("Google-Bibliothek lädt noch — kurz warten und nochmal klicken."); return; }
-  initGcalClient();
-  gcalTokenClient.requestAccessToken({prompt: gcalToken ? "" : "consent"});
+  const codeClient = google.accounts.oauth2.initCodeClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: "https://www.googleapis.com/auth/calendar.readonly",
+    ux_mode: "popup",
+    callback: async (resp)=>{
+      if(!resp || !resp.code){ setCalStatus("⚠️ abgebrochen"); return; }
+      setCalStatus("… verbinden");
+      const { error } = await sb.functions.invoke("gcal-connect",{ body:{ code: resp.code } });
+      if(error){ setCalStatus("⚠️ Fehler"); toast("Verbindung fehlgeschlagen — Edge Function/Secrets prüfen."); return; }
+      gcalConnected=true; toast("✓ Google-Kalender dauerhaft verbunden"); loadGcalEvents();
+    },
+  });
+  codeClient.requestCode();
 }
-async function fetchGcalEvents(){
-  if(!gcalToken) return;
+async function loadGcalEvents(){
+  if(!sb || !sbUser || !gcalReady()){ renderCalendar(); return; }
   setCalStatus("… laden");
-  const timeMin=new Date().toISOString();
-  const url="https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=12&singleEvents=true&orderBy=startTime&timeMin="+encodeURIComponent(timeMin);
-  try{
-    const res=await fetch(url,{headers:{Authorization:"Bearer "+gcalToken}});
-    if(res.status===401){ gcalToken=null; localStorage.removeItem("gcalToken"); setCalStatus("neu verbinden"); renderCalendar(); return; }
-    const data=await res.json();
-    renderCalendar(data.items||[]);
-    setCalStatus("✓ verbunden");
-  }catch(e){ setCalStatus("⚠️ Fehler"); }
+  const { data, error } = await sb.functions.invoke("gcal-events");
+  if(error){ setCalStatus("⚠️ Fehler"); renderCalendar(); return; }
+  if(!data || !data.connected){ gcalConnected=false; setCalStatus(""); renderCalendar(); return; }
+  gcalConnected=true;
+  renderCalendar(data.items||[]);
+  setCalStatus("✓ dauerhaft verbunden");
 }
 function renderCalendar(events){
   const body=$("#calBody"); if(!body) return;
-  $("#btnCalRefresh").style.display = gcalToken ? "inline-flex" : "none";
-  $("#btnCalConnect").style.display = gcalToken ? "none" : "inline-flex";
+  $("#btnCalRefresh").style.display = gcalConnected ? "inline-flex" : "none";
+  $("#btnCalConnect").style.display = gcalConnected ? "none" : "inline-flex";
   if(!gcalReady()){ body.innerHTML='<div class="cal-empty">Google-Kalender noch nicht eingerichtet. Trag deine Google-Client-ID im Code ein (Setup-Anleitung) — dann erscheinen hier automatisch deine Termine.</div>'; return; }
-  if(!gcalToken){ body.innerHTML='<div class="cal-empty">Verbinde deinen Google-Kalender, um anstehende Termine hier zu sehen.</div>'; return; }
+  if(!sbUser){ body.innerHTML='<div class="cal-empty">Logge dich ein (Cloud-Sync), um den Kalender dauerhaft zu verbinden.</div>'; return; }
+  if(!gcalConnected){ body.innerHTML='<div class="cal-empty">Verbinde deinen Google-Kalender — danach erscheinen deine Termine dauerhaft (kein erneutes Einloggen nötig).</div>'; return; }
   if(!events || !events.length){ body.innerHTML='<div class="cal-empty">Keine anstehenden Termine gefunden.</div>'; return; }
   const mon=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
   const days=["So","Mo","Di","Mi","Do","Fr","Sa"];
@@ -1579,12 +1582,10 @@ $("#btnMenu").onclick=(e)=>{ e.stopPropagation(); toggleNavMenu(); };
 document.addEventListener("click",(e)=>{ const m=$("#navMenu"); if(m && m.classList.contains("open") && !m.contains(e.target) && e.target.id!=="btnMenu"){ closeNavMenu(); } });
 $("#btnMic").onclick=toggleMic;
 $("#btnCalConnect").onclick=connectGcal;
-$("#btnCalRefresh").onclick=fetchGcalEvents;
+$("#btnCalRefresh").onclick=loadGcalEvents;
 
 buildNavMenu();
-gcalToken = localStorage.getItem("gcalToken") || null;
 renderCalendar();
-if(gcalToken) fetchGcalEvents();
 
 $("#btnReset").onclick=()=>{ if(confirm("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.")){ localStorage.removeItem(STORE_KEY); state=freshState(); viewDate=todayKey(); render(); toast("Zurückgesetzt"); } };
 
