@@ -481,6 +481,12 @@
     <div id="archiveContainer"></div>
   </section>
 
+  <!-- LIFETIME STATS -->
+  <section id="sec-stats">
+    <div class="sec-head"><h2>📊 Lifetime Stats</h2><div class="right" id="statsTrackedDays"></div></div>
+    <div id="statsContainer"></div>
+  </section>
+
   <!-- NUTRITION PLAN -->
   <section id="sec-nutrition">
     <div class="sec-head"><h2>🍖 Ernährungsplan & Referenz</h2><div class="right">3200 kcal · Lean Bulk</div></div>
@@ -906,6 +912,7 @@ function render(){
   renderAttributes();
   renderBadges();
   renderRewards();
+  renderStats();
   renderReflection();
   renderArchive();
   renderDateNav();
@@ -1082,6 +1089,79 @@ function checkBadges(){
   }
 }
 
+let statsEditMode = false;
+function toggleStatsEdit(){ statsEditMode=!statsEditMode; renderStats(); }
+function toggleStatHabit(id){ if(!state.statsVisible) state.statsVisible={}; state.statsVisible[id]= !(state.statsVisible[id]!==false); save(); renderStats(); }
+function statsVisible(id){ return !state.statsVisible || state.statsVisible[id]!==false; }
+
+function renderStats(){
+  if(!state.statsVisible) state.statsVisible={};
+  const days = Object.keys(state.days);
+  const tracked = days.length;
+  $("#statsTrackedDays").textContent = tracked + " Tage getrackt";
+
+  function cnt(id){ return days.filter(k=>!!state.days[k][id]).length; }
+  function sumV(id){ return days.reduce((s,k)=>s+(parseFloat(state.days[k][id])||0),0); }
+  function avgV(id){ const vs=days.map(k=>parseFloat(state.days[k][id])||0).filter(v=>v>0); return vs.length?(vs.reduce((a,b)=>a+b,0)/vs.length):0; }
+  function pct(n){ return tracked>0?Math.round(n/tracked*100):0; }
+
+  const maxStreak=(()=>{ let max=0,cur=0,ks=[...days].sort(); for(const k of ks){ if(dayHit(k)){cur++;if(cur>max)max=cur;}else cur=0;} return max; })();
+  const totXP=totalXP(), mom=momentumStreak();
+
+  function habitStatHTML(h, catColor){
+    const on = statsVisible(h.id);
+    if(statsEditMode){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line)">'
+        +'<span style="font-size:13px;color:'+(on?'var(--text)':'var(--muted)')+'">'+h.name+'</span>'
+        +'<label style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0">'
+        +'<input type="checkbox" '+(on?'checked':'')
+        +' onchange="toggleStatHabit(\''+h.id+'\')" style="opacity:0;width:0;height:0">'
+        +'<span style="position:absolute;cursor:pointer;inset:0;background:'+(on?'var(--gold)':'var(--line)')+';border-radius:22px;transition:.2s">'
+        +'<span style="position:absolute;content:\'\';height:16px;width:16px;left:'+(on?'18':'3')+'px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;display:block"></span>'
+        +'</span></label></div>';
+    }
+    if(!on) return "";
+    let valHTML="", subHTML="";
+    if(h.type==="check"){
+      const c=cnt(h.id);
+      valHTML='<span style="font-size:15px;font-weight:700;color:'+catColor+'">'+c+'</span>';
+      subHTML='<span style="font-size:11px;color:var(--muted);margin-left:6px">'+pct(c)+'%</span>';
+    } else {
+      const s=sumV(h.id), a=avgV(h.id);
+      valHTML='<span style="font-size:15px;font-weight:700;color:'+catColor+'">'+Math.round(s)+(h.unit?" "+h.unit:"")+'</span>';
+      subHTML='<span style="font-size:11px;color:var(--muted);margin-left:6px">Ø '+( a>=10?Math.round(a):a.toFixed(1) )+(h.unit?" "+h.unit:"")+"/Tag</span>';
+    }
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--line)">'
+      +'<span style="font-size:13px;color:var(--text)">'+h.name+'</span>'
+      +'<span>'+valHTML+subHTML+'</span></div>';
+  }
+
+  const catCards = CATEGORIES.map(cat=>{
+    const habits = state.habits.filter(h=>h.cat===cat.id);
+    if(!habits.length) return "";
+    const rows = habits.map(h=>habitStatHTML(h,cat.color)).join("");
+    const visibleRows = statsEditMode || habits.some(h=>statsVisible(h.id));
+    if(!visibleRows) return "";
+    return '<div class="glass" style="margin-bottom:12px;overflow:hidden">'
+      +'<div style="padding:12px 14px 10px;font-weight:600;font-size:14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px">'
+      +'<span>'+cat.icon+'</span>'+cat.name+'</div>'
+      +'<div>'+rows+'</div></div>';
+  }).join("");
+
+  const editBtn='<button onclick="toggleStatsEdit()" style="background:none;border:none;font-size:13px;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:6px">'
+    +(statsEditMode?'✓ Fertig':'✎ Anpassen')+'</button>';
+
+  $("#statsTrackedDays").innerHTML = tracked+' Tage &nbsp;'+editBtn;
+
+  $("#statsContainer").innerHTML =
+    '<div class="glass" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;padding:14px">'
+    +'<div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--gold)">'+totXP.toLocaleString("de")+'</div><div style="font-size:10.5px;color:var(--muted);margin-top:2px">Gesamt XP</div></div>'
+    +'<div style="text-align:center"><div style="font-size:22px;font-weight:700">🔥'+mom+'</div><div style="font-size:10.5px;color:var(--muted);margin-top:2px">Aktiver Streak</div></div>'
+    +'<div style="text-align:center"><div style="font-size:22px;font-weight:700">⚡'+maxStreak+'</div><div style="font-size:10.5px;color:var(--muted);margin-top:2px">Bester Streak</div></div>'
+    +'</div>'
+    + catCards;
+}
+
 function renderRewards(){
   const cont=$("#rewardList");
   const tot=totalXP();
@@ -1207,6 +1287,7 @@ function buildNavMenu(){
     {ico:"📆", name:"Kalender", target:"sec-calendar"},
     {ico:"🎁", name:"Belohnungen", target:"sec-rewards"},
     {ico:"📖", name:"Rückblick", target:"sec-archive"},
+    {ico:"📊", name:"Lifetime Stats", target:"sec-stats"},
     {ico:"🍖", name:"Ernährungsplan", target:"sec-nutrition"},
     {ico:"📅", name:"Wochenübersicht", action:"weekly"},
   ];
