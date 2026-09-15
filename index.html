@@ -562,7 +562,6 @@
 <div class="modal-bg" id="modalSettings">
   <div class="modal">
     <h3>⚙️ Einstellungen</h3>
-    <input id="setApiKey" type="hidden"/>
     <div style="font-size:11.5px;color:var(--faint);margin-bottom:14px;line-height:1.5;padding:10px;background:var(--surface2);border-radius:10px;border:1px solid var(--line)">
       🔒 Dein Anthropic-Key liegt sicher in der <b>Supabase Edge Function</b> (Secret <code>ANTHROPIC_API_KEY</code>) — nicht im Browser. Hier musst du nichts eintragen.
     </div>
@@ -771,7 +770,7 @@ function freshState(){
     boss: ["", "", ""],
     bossDone:[false,false,false],
     gym: {anchorDate: todayKey(), anchorIndex:0},
-    settings:{apiKey:"", kcal:3200, protein:185},
+    settings:{kcal:3200, protein:185},
     earnedBadges:{},
     rewards: defaultRewards(),
     claimedRewards:{},
@@ -1606,14 +1605,12 @@ $("#btnSummary").onclick=async()=>{
 };
 
 $("#btnSettings").onclick=()=>{
-  $("#setApiKey").value=state.settings.apiKey||"";
   $("#setKcal").value=state.settings.kcal||3200;
   $("#setProtein").value=state.settings.protein||185;
   $("#modalSettings").classList.add("open");
 };
 $("#setCancel").onclick=()=>$("#modalSettings").classList.remove("open");
 $("#setSave").onclick=()=>{
-  state.settings.apiKey=$("#setApiKey").value.trim();
   state.settings.kcal=parseInt($("#setKcal").value)||3200;
   state.settings.protein=parseInt($("#setProtein").value)||185;
   // sync targets into nutrition habits
