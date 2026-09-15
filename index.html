@@ -632,10 +632,13 @@
       <button class="seg-btn" data-mode="signup">Konto erstellen</button>
     </div>
     <div class="field"><label>E-Mail</label><input id="authEmail" type="email" placeholder="du@mail.de" autocomplete="email"/></div>
-    <div class="field"><label>Passwort</label><input id="authPass" type="password" placeholder="Passwort" autocomplete="current-password"/></div>
+    <div class="field" id="authPassField"><label>Passwort</label><input id="authPass" type="password" placeholder="Passwort" autocomplete="current-password"/></div>
+    <div class="field" id="authNewPassField" style="display:none"><label>Neues Passwort</label><input id="authNewPass" type="password" placeholder="Mind. 6 Zeichen" autocomplete="new-password"/></div>
+    <div style="text-align:right;margin:-6px 0 10px" id="authForgotWrap"><button class="btn ghost" id="authForgotBtn" style="font-size:12px;color:var(--faint);border:none;padding:0">Passwort vergessen?</button></div>
     <div id="authMsg" style="font-size:12px;color:var(--bad);min-height:16px;margin-bottom:8px"></div>
     <button class="btn primary" id="authPrimary" style="width:100%;justify-content:center">Anmelden</button>
-    <div style="text-align:center;margin-top:14px"><button class="btn ghost" id="authSkip" style="font-size:12px;color:var(--faint);border:none">Ohne Sync lokal nutzen</button></div>
+    <div style="text-align:center;margin-top:14px;display:none" id="authBackWrap"><button class="btn ghost" id="authBackBtn" style="font-size:12px;color:var(--faint);border:none">Zurück zum Login</button></div>
+    <div style="text-align:center;margin-top:14px" id="authSkipWrap"><button class="btn ghost" id="authSkip" style="font-size:12px;color:var(--faint);border:none">Ohne Sync lokal nutzen</button></div>
   </div>
 </div>
 
@@ -1683,10 +1686,23 @@ function setUserBadge(email){
 }
 function setAuthMode(m){
   authMode=m;
+  const isReset=m==="reset", isRecovery=m==="recovery";
+  $("#authSeg").style.display = (isReset||isRecovery) ? "none" : "";
   $$("#authSeg .seg-btn").forEach(x=>x.classList.toggle("active", x.dataset.mode===m));
+  $("#authPassField").style.display = (isReset||isRecovery) ? "none" : "";
+  $("#authNewPassField").style.display = isRecovery ? "" : "none";
+  $("#authForgotWrap").style.display = (m==="login") ? "" : "none";
+  $("#authBackWrap").style.display = isReset ? "" : "none";
+  $("#authSkipWrap").style.display = (isReset||isRecovery) ? "none" : "";
   if(m==="signup"){
     $("#authSub").innerHTML="<b style='color:var(--gold)'>Erstanmeldung</b> — leg dein Konto an. E-Mail + Passwort merken, dann sind deine Daten auf jedem Gerät dabei.";
     $("#authPrimary").textContent="Konto erstellen";
+  } else if(m==="reset"){
+    $("#authSub").textContent="Gib deine E-Mail ein — wir schicken dir einen Link zum Zurücksetzen.";
+    $("#authPrimary").textContent="Link senden";
+  } else if(m==="recovery"){
+    $("#authSub").textContent="Setze dein neues Passwort.";
+    $("#authPrimary").textContent="Passwort speichern";
   } else {
     $("#authSub").textContent="Willkommen zurück — melde dich an.";
     $("#authPrimary").textContent="Anmelden";
@@ -1719,13 +1735,45 @@ async function doSignup(){
   if(data.session){ sbUser=data.user; showApp(); await cloudLoad(); render(); toast("⚔️ Konto erstellt — willkommen, Arian!"); }
   else { $("#authMsg").style.color="var(--ok)"; $("#authMsg").textContent="Konto erstellt — bitte E-Mail bestätigen, dann anmelden."; }
 }
+async function doReset(){
+  const email=$("#authEmail").value.trim();
+  $("#authMsg").style.color="var(--bad)"; $("#authMsg").textContent="";
+  if(!email){ $("#authMsg").textContent="Bitte E-Mail eingeben."; return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+  if(error){ $("#authMsg").textContent=error.message; return; }
+  $("#authMsg").style.color="var(--ok)";
+  $("#authMsg").textContent="Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen verschickt.";
+}
+async function doUpdatePassword(){
+  const pass=$("#authNewPass").value;
+  $("#authMsg").style.color="var(--bad)"; $("#authMsg").textContent="";
+  if(pass.length<6){ $("#authMsg").textContent="Passwort min. 6 Zeichen."; return; }
+  const { error } = await sb.auth.updateUser({ password: pass });
+  if(error){ $("#authMsg").textContent=error.message; return; }
+  toast("Passwort aktualisiert ✅");
+  $("#authOverlay").classList.remove("open");
+  showApp(); await cloudLoad(); render();
+}
+function submitAuth(){
+  if(authMode==="signup") doSignup();
+  else if(authMode==="reset") doReset();
+  else if(authMode==="recovery") doUpdatePassword();
+  else doLogin();
+}
 
 $("#authSkip").onclick=()=>{ appActive=true; $("#authOverlay").classList.remove("open"); setSyncStatus("lokal (kein Sync)"); render(); };
 if (sb){
   $$("#authSeg .seg-btn").forEach(b=> b.onclick=()=>setAuthMode(b.dataset.mode));
-  $("#authPrimary").onclick=()=> (authMode==="signup"?doSignup():doLogin());
-  $("#authPass").addEventListener("keydown",e=>{ if(e.key==="Enter") (authMode==="signup"?doSignup():doLogin()); });
+  $("#authPrimary").onclick=submitAuth;
+  $("#authPass").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAuth(); });
+  $("#authNewPass").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAuth(); });
+  $("#authEmail").addEventListener("keydown",e=>{ if(e.key==="Enter" && authMode==="reset") submitAuth(); });
+  $("#authForgotBtn").onclick=()=> setAuthMode("reset");
+  $("#authBackBtn").onclick=()=> setAuthMode("login");
   $("#btnLogout").onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
+  sb.auth.onAuthStateChange((event)=>{
+    if(event==="PASSWORD_RECOVERY"){ setAuthMode("recovery"); $("#authOverlay").classList.add("open"); }
+  });
 }
 
 async function boot(){
