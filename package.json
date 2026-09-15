@@ -1,0 +1,26 @@
+{
+  "name": "drive-os",
+  "version": "1.0.0",
+  "description": "Drive OS - Habit tracker mit Claude-Feedback",
+  "scripts": {
+    "build": "node scripts/copy-web.js",
+    "sync:ios": "npm run build && npx cap sync ios"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arian710/Drive-OS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Arian710/Drive-OS/issues"
+  },
+  "homepage": "https://github.com/Arian710/Drive-OS#readme",
+  "dependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2"
+  }
+}
