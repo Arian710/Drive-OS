@@ -1509,7 +1509,15 @@ async function claudeSummary(){
   if (sb && sbUser){
     try{
       const { data, error } = await sb.functions.invoke("daily-summary", { body:{ context:c } });
-      if (error) throw error;
+      if (error){
+        let msg = error.message, code = null;
+        if (error.context && typeof error.context.json === "function"){
+          try{ const body = await error.context.json(); msg = body.error || msg; code = body.code || null; }catch(_){}
+        }
+        if (code === "SUBSCRIPTION_REQUIRED") return "🔒 " + msg;
+        if (code === "RATE_LIMITED") return "⏳ " + msg;
+        throw new Error(msg);
+      }
       if (data && data.text) return data.text;
       throw new Error(data && data.error ? data.error : "Leere Antwort");
     }catch(e){
